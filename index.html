@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0f14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>GutLog - IBS Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0f14;
+            --bg-secondary: #111921;
+            --bg-tertiary: #1a242e;
+            --bg-card: #151d26;
+            --border: #2a3744;
+            --text-primary: #e8ecf0;
+            --text-secondary: #8a9bab;
+            --text-muted: #5a6b7a;
+            --accent: #00d4aa;
+            --accent-dim: #00a88a;
+            --warning: #ff6b6b;
+            --warning-dim: #cc5555;
+            --info: #4dabf7;
+            --severity-1: #00d4aa;
+            --severity-2: #7bc96f;
+            --severity-3: #ffd93d;
+            --severity-4: #ff9f43;
+            --severity-5: #ff6b6b;
+            --fodmap-high: #ff6b6b;
+            --fodmap-medium: #ffd93d;
+            --fodmap-low: #00d4aa;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --font-sans: 'IBM Plex Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .logo-text {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .lang-toggle {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-toggle:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 10px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 14px 10px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .nav-btn:hover:not(.active) {
+            color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        /* Quick Add Buttons */
+        .quick-add {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-add-btn {
+            padding: 20px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-add-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent);
+        }
+
+        .quick-add-btn svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 40px;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 6px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .timeline-dot.meal {
+            background: var(--accent);
+        }
+
+        .timeline-dot.symptom {
+            background: var(--warning);
+        }
+
+        .timeline-time {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .timeline-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .timeline-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-badge.meal {
+            background: rgba(0, 212, 170, 0.15);
+            color: var(--accent);
+        }
+
+        .timeline-badge.symptom {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--warning);
+        }
+
+        .timeline-details {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .fodmap-tag {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 6px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fodmap-tag.high {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--fodmap-high);
+        }
+
+        .fodmap-tag.medium {
+            background: rgba(255, 217, 61, 0.15);
+            color: var(--fodmap-medium);
+        }
+
+        .fodmap-tag.low {
+            background: rgba(0, 212, 170, 0.15);
+            color: var(--fodmap-low);
+        }
+
+        .severity-indicator {
+            display: flex;
+            gap: 3px;
+            margin-top: 8px;
+        }
+
+        .severity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            background: var(--border);
+        }
+
+        .severity-dot.active.s1 { background: var(--severity-1); }
+        .severity-dot.active.s2 { background: var(--severity-2); }
+        .severity-dot.active.s3 { background: var(--severity-3); }
+        .severity-dot.active.s4 { background: var(--severity-4); }
+        .severity-dot.active.s5 { background: var(--severity-5); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 12px auto;
+        }
+
+        .modal-header {
+            padding: 0 20px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-card);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.form-input {
+            resize: none;
+            min-height: 100px;
+        }
+
+        /* Food Search */
+        .food-search-results {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: -10px;
+            padding-top: 10px;
+        }
+
+        .food-search-results.hidden {
+            display: none;
+        }
+
+        .food-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .food-item:hover {
+            background: var(--bg-card);
+        }
+
+        .food-item-name {
+            font-size: 14px;
+        }
+
+        .food-item-fodmap {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Symptom Type Buttons */
+        .symptom-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .symptom-type-btn {
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .symptom-type-btn.active {
+            background: rgba(255, 107, 107, 0.15);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .symptom-type-btn:hover:not(.active) {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Severity Selector */
+        .severity-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .severity-btn {
+            flex: 1;
+            padding: 14px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .severity-btn:hover:not(.active) {
+            background: var(--bg-card);
+        }
+
+        .severity-btn.active.s1 { background: var(--severity-1); color: var(--bg-primary); border-color: var(--severity-1); }
+        .severity-btn.active.s2 { background: var(--severity-2); color: var(--bg-primary); border-color: var(--severity-2); }
+        .severity-btn.active.s3 { background: var(--severity-3); color: var(--bg-primary); border-color: var(--severity-3); }
+        .severity-btn.active.s4 { background: var(--severity-4); color: var(--bg-primary); border-color: var(--severity-4); }
+        .severity-btn.active.s5 { background: var(--severity-5); color: var(--bg-primary); border-color: var(--severity-5); }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-primary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-dim);
+        }
+
+        .btn-submit:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+        }
+
+        /* Insights Page */
+        .insight-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .insight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .insight-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .insight-value {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .insight-bar {
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .insight-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .food-correlation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .food-correlation:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .food-correlation-name {
+            font-size: 14px;
+        }
+
+        .food-correlation-percent {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--warning);
+        }
+
+        /* Settings Page */
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .settings-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .settings-item-label {
+            font-size: 14px;
+        }
+
+        .settings-item-value {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* Date Picker */
+        .date-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .date-nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+
+        .date-nav-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .date-nav-current {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        /* Delete button */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .timeline-content:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            color: var(--warning);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Page hidden */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Selected foods list */
+        .selected-foods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .selected-food-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .selected-food-remove {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .selected-food-remove:hover {
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app"></div>
+
+    <script>
+        // ============================================
+        // LANGUAGE SYSTEM
+        // ============================================
+        const translations = {
+            en: {
+                appName: 'GutLog',
+                timeline: 'Timeline',
+                insights: 'Insights',
+                settings: 'Settings',
+                logMeal: 'Log Meal',
+                logSymptom: 'Log Symptom',
+                today: 'Today',
+                yesterday: 'Yesterday',
+                meal: 'Meal',
+                symptom: 'Symptom',
+                searchFoods: 'Search foods...',
+                customFood: 'Or type custom food',
+                notes: 'Notes (optional)',
+                notesPlaceholder: 'Any additional details...',
+                severity: 'Severity',
+                symptomType: 'Symptom Type',
+                bloating: 'Bloating',
+                pain: 'Pain',
+                cramping: 'Cramping',
+                gas: 'Gas',
+                diarrhea: 'Diarrhea',
+                constipation: 'Constipation',
+                nausea: 'Nausea',
+                urgency: 'Urgency',
+                save: 'Save Entry',
+                cancel: 'Cancel',
+                emptyTitle: 'No entries yet',
+                emptyText: 'Start logging your meals and symptoms to track patterns',
+                weekSummary: 'Week Summary',
+                totalMeals: 'Meals Logged',
+                totalSymptoms: 'Symptoms Logged',
+                avgSeverity: 'Avg Severity',
+                topTriggers: 'Potential Triggers',
+                noDataYet: 'Log more data to see insights',
+                language: 'Language',
+                exportData: 'Export Data (CSV)',
+                clearData: 'Clear All Data',
+                clearConfirm: 'Are you sure? This cannot be undone.',
+                exportSuccess: 'Data exported successfully',
+                cleared: 'All data cleared',
+                entryDeleted: 'Entry deleted',
+                high: 'High FODMAP',
+                medium: 'Med FODMAP',
+                low: 'Low FODMAP',
+                time: 'Time',
+                selectedFoods: 'Selected foods',
+                addMeal: 'Add Meal',
+                addSymptom: 'Add Symptom',
+                mealSaved: 'Meal logged',
+                symptomSaved: 'Symptom logged'
+            },
+            pt: {
+                appName: 'GutLog',
+                timeline: 'Linha do Tempo',
+                insights: 'Análises',
+                settings: 'Ajustes',
+                logMeal: 'Registrar Refeição',
+                logSymptom: 'Registrar Sintoma',
+                today: 'Hoje',
+                yesterday: 'Ontem',
+                meal: 'Refeição',
+                symptom: 'Sintoma',
+                searchFoods: 'Buscar alimentos...',
+                customFood: 'Ou digite um alimento',
+                notes: 'Notas (opcional)',
+                notesPlaceholder: 'Detalhes adicionais...',
+                severity: 'Intensidade',
+                symptomType: 'Tipo de Sintoma',
+                bloating: 'Inchaço',
+                pain: 'Dor',
+                cramping: 'Cólica',
+                gas: 'Gases',
+                diarrhea: 'Diarreia',
+                constipation: 'Constipação',
+                nausea: 'Náusea',
+                urgency: 'Urgência',
+                save: 'Salvar',
+                cancel: 'Cancelar',
+                emptyTitle: 'Nenhum registro ainda',
+                emptyText: 'Comece a registrar suas refeições e sintomas para identificar padrões',
+                weekSummary: 'Resumo da Semana',
+                totalMeals: 'Refeições',
+                totalSymptoms: 'Sintomas',
+                avgSeverity: 'Intensidade Média',
+                topTriggers: 'Possíveis Gatilhos',
+                noDataYet: 'Registre mais dados para ver análises',
+                language: 'Idioma',
+                exportData: 'Exportar Dados (CSV)',
+                clearData: 'Limpar Todos os Dados',
+                clearConfirm: 'Tem certeza? Esta ação não pode ser desfeita.',
+                exportSuccess: 'Dados exportados com sucesso',
+                cleared: 'Todos os dados foram limpos',
+                entryDeleted: 'Registro excluído',
+                high: 'Alto FODMAP',
+                medium: 'Médio FODMAP',
+                low: 'Baixo FODMAP',
+                time: 'Horário',
+                selectedFoods: 'Alimentos selecionados',
+                addMeal: 'Adicionar Refeição',
+                addSymptom: 'Adicionar Sintoma',
+                mealSaved: 'Refeição registrada',
+                symptomSaved: 'Sintoma registrado'
+            }
+        };
+
+        // ============================================
+        // FOOD DATABASE
+        // ============================================
+        const foodDatabase = [
+            // Fruits - Low FODMAP
+            { name: { en: 'Banana (unripe)', pt: 'Banana (verde)' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Blueberries', pt: 'Mirtilos' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Strawberries', pt: 'Morangos' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Grapes', pt: 'Uvas' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Orange', pt: 'Laranja' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Kiwi', pt: 'Kiwi' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Pineapple', pt: 'Abacaxi' }, fodmap: 'low', category: 'fruit' },
+            { name: { en: 'Cantaloupe', pt: 'Melão' }, fodmap: 'low', category: 'fruit' },
+            
+            // Fruits - High FODMAP
+            { name: { en: 'Apple', pt: 'Maçã' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Pear', pt: 'Pera' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Mango', pt: 'Manga' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Watermelon', pt: 'Melancia' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Cherries', pt: 'Cerejas' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Peach', pt: 'Pêssego' }, fodmap: 'high', category: 'fruit' },
+            { name: { en: 'Plum', pt: 'Ameixa' }, fodmap: 'high', category: 'fruit' },
+            
+            // Vegetables - Low FODMAP
+            { name: { en: 'Carrot', pt: 'Cenoura' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Potato', pt: 'Batata' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Spinach', pt: 'Espinafre' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Zucchini', pt: 'Abobrinha' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Tomato', pt: 'Tomate' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Cucumber', pt: 'Pepino' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Bell Pepper', pt: 'Pimentão' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Lettuce', pt: 'Alface' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Green Beans', pt: 'Vagem' }, fodmap: 'low', category: 'vegetable' },
+            { name: { en: 'Eggplant', pt: 'Berinjela' }, fodmap: 'low', category: 'vegetable' },
+            
+            // Vegetables - High FODMAP
+            { name: { en: 'Onion', pt: 'Cebola' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Garlic', pt: 'Alho' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Broccoli', pt: 'Brócolis' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Cauliflower', pt: 'Couve-flor' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Cabbage', pt: 'Repolho' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Mushrooms', pt: 'Cogumelos' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Asparagus', pt: 'Aspargos' }, fodmap: 'high', category: 'vegetable' },
+            { name: { en: 'Artichoke', pt: 'Alcachofra' }, fodmap: 'high', category: 'vegetable' },
+            
+            // Proteins - Low FODMAP
+            { name: { en: 'Chicken', pt: 'Frango' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Beef', pt: 'Carne bovina' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Pork', pt: 'Carne suína' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Fish', pt: 'Peixe' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Eggs', pt: 'Ovos' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Shrimp', pt: 'Camarão' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Turkey', pt: 'Peru' }, fodmap: 'low', category: 'protein' },
+            { name: { en: 'Tofu (firm)', pt: 'Tofu (firme)' }, fodmap: 'low', category: 'protein' },
+            
+            // Dairy - Low FODMAP
+            { name: { en: 'Lactose-free Milk', pt: 'Leite sem lactose' }, fodmap: 'low', category: 'dairy' },
+            { name: { en: 'Hard Cheese', pt: 'Queijo curado' }, fodmap: 'low', category: 'dairy' },
+            { name: { en: 'Brie', pt: 'Queijo Brie' }, fodmap: 'low', category: 'dairy' },
+            { name: { en: 'Butter', pt: 'Manteiga' }, fodmap: 'low', category: 'dairy' },
+            
+            // Dairy - High FODMAP
+            { name: { en: 'Milk', pt: 'Leite' }, fodmap: 'high', category: 'dairy' },
+            { name: { en: 'Yogurt', pt: 'Iogurte' }, fodmap: 'high', category: 'dairy' },
+            { name: { en: 'Ice Cream', pt: 'Sorvete' }, fodmap: 'high', category: 'dairy' },
+            { name: { en: 'Cream Cheese', pt: 'Cream cheese' }, fodmap: 'high', category: 'dairy' },
+            { name: { en: 'Cottage Cheese', pt: 'Queijo cottage' }, fodmap: 'high', category: 'dairy' },
+            
+            // Grains - Low FODMAP
+            { name: { en: 'Rice', pt: 'Arroz' }, fodmap: 'low', category: 'grain' },
+            { name: { en: 'Oats', pt: 'Aveia' }, fodmap: 'low', category: 'grain' },
+            { name: { en: 'Quinoa', pt: 'Quinoa' }, fodmap: 'low', category: 'grain' },
+            { name: { en: 'Corn', pt: 'Milho' }, fodmap: 'low', category: 'grain' },
+            { name: { en: 'Gluten-free Bread', pt: 'Pão sem glúten' }, fodmap: 'low', category: 'grain' },
+            { name: { en: 'Sourdough Bread', pt: 'Pão de fermentação natural' }, fodmap: 'low', category: 'grain' },
+            
+            // Grains - High FODMAP
+            { name: { en: 'Wheat Bread', pt: 'Pão de trigo' }, fodmap: 'high', category: 'grain' },
+            { name: { en: 'Pasta', pt: 'Massa' }, fodmap: 'high', category: 'grain' },
+            { name: { en: 'Couscous', pt: 'Cuscuz' }, fodmap: 'high', category: 'grain' },
+            { name: { en: 'Rye Bread', pt: 'Pão de centeio' }, fodmap: 'high', category: 'grain' },
+            
+            // Legumes - High FODMAP
+            { name: { en: 'Black Beans', pt: 'Feijão preto' }, fodmap: 'high', category: 'legume' },
+            { name: { en: 'Chickpeas', pt: 'Grão de bico' }, fodmap: 'high', category: 'legume' },
+            { name: { en: 'Lentils', pt: 'Lentilhas' }, fodmap: 'high', category: 'legume' },
+            { name: { en: 'Kidney Beans', pt: 'Feijão vermelho' }, fodmap: 'high', category: 'legume' },
+            
+            // Beverages
+            { name: { en: 'Coffee', pt: 'Café' }, fodmap: 'low', category: 'beverage' },
+            { name: { en: 'Tea', pt: 'Chá' }, fodmap: 'low', category: 'beverage' },
+            { name: { en: 'Water', pt: 'Água' }, fodmap: 'low', category: 'beverage' },
+            { name: { en: 'Beer', pt: 'Cerveja' }, fodmap: 'medium', category: 'beverage' },
+            { name: { en: 'Wine', pt: 'Vinho' }, fodmap: 'low', category: 'beverage' },
+            { name: { en: 'Fruit Juice', pt: 'Suco de fruta' }, fodmap: 'high', category: 'beverage' },
+            { name: { en: 'Soda', pt: 'Refrigerante' }, fodmap: 'high', category: 'beverage' },
+            
+            // Common meals
+            { name: { en: 'Pizza', pt: 'Pizza' }, fodmap: 'high', category: 'meal' },
+            { name: { en: 'Hamburger', pt: 'Hambúrguer' }, fodmap: 'high', category: 'meal' },
+            { name: { en: 'Salad', pt: 'Salada' }, fodmap: 'low', category: 'meal' },
+            { name: { en: 'Sushi', pt: 'Sushi' }, fodmap: 'low', category: 'meal' },
+            { name: { en: 'Sandwich', pt: 'Sanduíche' }, fodmap: 'high', category: 'meal' },
+            { name: { en: 'Soup', pt: 'Sopa' }, fodmap: 'medium', category: 'meal' },
+            { name: { en: 'Steak', pt: 'Bife' }, fodmap: 'low', category: 'meal' },
+            { name: { en: 'Grilled Chicken', pt: 'Frango grelhado' }, fodmap: 'low', category: 'meal' },
+            
+            // Snacks
+            { name: { en: 'Chocolate', pt: 'Chocolate' }, fodmap: 'medium', category: 'snack' },
+            { name: { en: 'Chips', pt: 'Batata frita' }, fodmap: 'low', category: 'snack' },
+            { name: { en: 'Nuts', pt: 'Nozes' }, fodmap: 'medium', category: 'snack' },
+            { name: { en: 'Popcorn', pt: 'Pipoca' }, fodmap: 'low', category: 'snack' },
+            { name: { en: 'Cookies', pt: 'Biscoitos' }, fodmap: 'high', category: 'snack' },
+        ];
+
+        // ============================================
+        // APP STATE
+        // ============================================
+        let state = {
+            lang: localStorage.getItem('gutlog_lang') || 'en',
+            currentPage: 'timeline',
+            currentDate: new Date(),
+            entries: JSON.parse(localStorage.getItem('gutlog_entries') || '[]'),
+            modal: null,
+            mealForm: {
+                foods: [],
+                customFood: '',
+                notes: '',
+                time: ''
+            },
+            symptomForm: {
+                types: [],
+                severity: 3,
+                notes: '',
+                time: ''
+            }
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        const t = (key) => translations[state.lang][key] || key;
+
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+
+        const formatDate = (date) => {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (date.toDateString() === today.toDateString()) return t('today');
+            if (date.toDateString() === yesterday.toDateString()) return t('yesterday');
+            
+            return date.toLocaleDateString(state.lang === 'pt' ? 'pt-BR' : 'en-US', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short'
+            });
+        };
+
+        const formatTime = (timestamp) => {
+            return new Date(timestamp).toLocaleTimeString(state.lang === 'pt' ? 'pt-BR' : 'en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        const saveEntries = () => {
+            localStorage.setItem('gutlog_entries', JSON.stringify(state.entries));
+        };
+
+        const getEntriesForDate = (date) => {
+            const dateStr = date.toDateString();
+            return state.entries
+                .filter(e => new Date(e.timestamp).toDateString() === dateStr)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        };
+
+        const getWeekEntries = () => {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return state.entries.filter(e => new Date(e.timestamp) >= weekAgo);
+        };
+
+        const showToast = (message) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        };
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+        const render = () => {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                ${renderHeader()}
+                ${renderNav()}
+                <main class="main">
+                    <div class="page ${state.currentPage === 'timeline' ? 'active' : ''}" id="page-timeline">
+                        ${renderTimeline()}
+                    </div>
+                    <div class="page ${state.currentPage === 'insights' ? 'active' : ''}" id="page-insights">
+                        ${renderInsights()}
+                    </div>
+                    <div class="page ${state.currentPage === 'settings' ? 'active' : ''}" id="page-settings">
+                        ${renderSettings()}
+                    </div>
+                </main>
+                ${renderModal()}
+                <div class="toast" id="toast"></div>
+            `;
+            attachEventListeners();
+        };
+
+        const renderHeader = () => `
+            <header class="header">
+                <div class="logo">
+                    <div class="logo-icon">📊</div>
+                    <span class="logo-text">${t('appName')}</span>
+                </div>
+                <button class="lang-toggle" id="lang-toggle">
+                    ${state.lang.toUpperCase()}
+                </button>
+            </header>
+        `;
+
+        const renderNav = () => `
+            <nav class="nav">
+                <button class="nav-btn ${state.currentPage === 'timeline' ? 'active' : ''}" data-page="timeline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <polyline points="6 10 12 4 18 10"></polyline>
+                    </svg>
+                    ${t('timeline')}
+                </button>
+                <button class="nav-btn ${state.currentPage === 'insights' ? 'active' : ''}" data-page="insights">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    ${t('insights')}
+                </button>
+                <button class="nav-btn ${state.currentPage === 'settings' ? 'active' : ''}" data-page="settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    ${t('settings')}
+                </button>
+            </nav>
+        `;
+
+        const renderTimeline = () => {
+            const entries = getEntriesForDate(state.currentDate);
+            
+            return `
+                <div class="quick-add">
+                    <button class="quick-add-btn" id="btn-add-meal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                            <line x1="6" y1="1" x2="6" y2="4"></line>
+                            <line x1="10" y1="1" x2="10" y2="4"></line>
+                            <line x1="14" y1="1" x2="14" y2="4"></line>
+                        </svg>
+                        ${t('logMeal')}
+                    </button>
+                    <button class="quick-add-btn" id="btn-add-symptom">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                        ${t('logSymptom')}
+                    </button>
+                </div>
+
+                <div class="date-nav">
+                    <button class="date-nav-btn" id="prev-day">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <span class="date-nav-current">${formatDate(state.currentDate)}</span>
+                    <button class="date-nav-btn" id="next-day">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+
+                ${entries.length === 0 ? `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <div class="empty-state-title">${t('emptyTitle')}</div>
+                        <div class="empty-state-text">${t('emptyText')}</div>
+                    </div>
+                ` : `
+                    <div class="section-title">${formatDate(state.currentDate)}</div>
+                    <div class="timeline">
+                        ${entries.map(entry => renderTimelineItem(entry)).join('')}
+                    </div>
+                `}
+            `;
+        };
+
+        const renderTimelineItem = (entry) => {
+            if (entry.type === 'meal') {
+                const foodNames = entry.foods.map(f => f.name[state.lang] || f.name.en || f.customName).join(', ');
+                const fodmapTags = entry.foods
+                    .filter(f => f.fodmap)
+                    .map(f => `<span class="fodmap-tag ${f.fodmap}">${t(f.fodmap)}</span>`)
+                    .join('');
+                
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-dot meal"></div>
+                        <div class="timeline-time">${formatTime(entry.timestamp)}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <span class="timeline-title">${escapeHtml(foodNames)}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="timeline-badge meal">${t('meal')}</span>
+                                    <button class="delete-btn" data-id="${entry.id}">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            ${entry.notes ? `<div class="timeline-details">${escapeHtml(entry.notes)}</div>` : ''}
+                            ${fodmapTags ? `<div>${fodmapTags}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const symptomNames = entry.symptoms.map(s => t(s)).join(', ');
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-dot symptom"></div>
+                        <div class="timeline-time">${formatTime(entry.timestamp)}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <span class="timeline-title">${symptomNames}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="timeline-badge symptom">${t('symptom')}</span>
+                                    <button class="delete-btn" data-id="${entry.id}">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            ${entry.notes ? `<div class="timeline-details">${escapeHtml(entry.notes)}</div>` : ''}
+                            <div class="severity-indicator">
+                                ${[1,2,3,4,5].map(i => `
+                                    <div class="severity-dot ${i <= entry.severity ? `active s${entry.severity}` : ''}"></div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        const renderInsights = () => {
+            const weekEntries = getWeekEntries();
+            const meals = weekEntries.filter(e => e.type === 'meal');
+            const symptoms = weekEntries.filter(e => e.type === 'symptom');
+            
+            const avgSeverity = symptoms.length > 0 
+                ? (symptoms.reduce((sum, s) => sum + s.severity, 0) / symptoms.length).toFixed(1)
+                : '-';
+
+            // Calculate food-symptom correlations
+            const foodSymptomCounts = {};
+            meals.forEach(meal => {
+                const mealTime = new Date(meal.timestamp);
+                const windowEnd = new Date(mealTime.getTime() + 6 * 60 * 60 * 1000); // 6 hour window
+                
+                const symptomsAfter = symptoms.filter(s => {
+                    const sTime = new Date(s.timestamp);
+                    return sTime > mealTime && sTime <= windowEnd;
+                });
+                
+                if (symptomsAfter.length > 0) {
+                    meal.foods.forEach(food => {
+                        const name = food.name[state.lang] || food.name.en || food.customName;
+                        foodSymptomCounts[name] = (foodSymptomCounts[name] || 0) + 1;
+                    });
+                }
+            });
+
+            const topTriggers = Object.entries(foodSymptomCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            return `
+                <div class="section-title">${t('weekSummary')}</div>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
+                    <div class="insight-card" style="text-align: center;">
+                        <div class="insight-value">${meals.length}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${t('totalMeals')}</div>
+                    </div>
+                    <div class="insight-card" style="text-align: center;">
+                        <div class="insight-value" style="color: var(--warning);">${symptoms.length}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${t('totalSymptoms')}</div>
+                    </div>
+                    <div class="insight-card" style="text-align: center;">
+                        <div class="insight-value" style="color: var(--info);">${avgSeverity}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${t('avgSeverity')}</div>
+                    </div>
+                </div>
+
+                <div class="section-title">${t('topTriggers')}</div>
+                <div class="insight-card">
+                    ${topTriggers.length > 0 ? topTriggers.map(([food, count]) => `
+                        <div class="food-correlation">
+                            <span class="food-correlation-name">${food}</span>
+                            <span class="food-correlation-percent">${count}x</span>
+                        </div>
+                    `).join('') : `
+                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                            ${t('noDataYet')}
+                        </div>
+                    `}
+                </div>
+            `;
+        };
+
+        const renderSettings = () => `
+            <div class="section-title">${t('settings')}</div>
+            
+            <div class="settings-item" id="setting-lang">
+                <span class="settings-item-label">${t('language')}</span>
+                <span class="settings-item-value">${state.lang === 'en' ? 'English' : 'Português'}</span>
+            </div>
+            
+            <div class="settings-item" id="setting-export">
+                <span class="settings-item-label">${t('exportData')}</span>
+                <span class="settings-item-value">→</span>
+            </div>
+            
+            <div class="settings-item" id="setting-clear" style="border-color: var(--warning);">
+                <span class="settings-item-label" style="color: var(--warning);">${t('clearData')}</span>
+                <span class="settings-item-value">→</span>
+            </div>
+        `;
+
+        const renderModal = () => {
+            if (!state.modal) return '';
+            
+            if (state.modal === 'meal') {
+                return renderMealModal();
+            } else if (state.modal === 'symptom') {
+                return renderSymptomModal();
+            }
+            return '';
+        };
+
+        const renderMealModal = () => {
+            const now = new Date();
+            const timeValue = state.mealForm.time || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            return `
+                <div class="modal-overlay active" id="modal-overlay">
+                    <div class="modal">
+                        <div class="modal-handle"></div>
+                        <div class="modal-header">
+                            <span class="modal-title">${t('addMeal')}</span>
+                            <button class="modal-close" id="modal-close">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label">${t('time')}</label>
+                                <input type="time" class="form-input" id="meal-time" value="${timeValue}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('searchFoods')}</label>
+                                <input type="text" class="form-input" id="food-search" placeholder="${t('searchFoods')}" autocomplete="off">
+                                <div class="food-search-results hidden" id="food-results"></div>
+                                
+                                ${state.mealForm.foods.length > 0 ? `
+                                    <div class="selected-foods" id="selected-foods">
+                                        ${state.mealForm.foods.map((food, idx) => `
+                                            <div class="selected-food-tag">
+                                                ${food.name[state.lang] || food.name.en || food.customName}
+                                                ${food.fodmap ? `<span class="fodmap-tag ${food.fodmap}" style="margin: 0; margin-left: 4px;">${food.fodmap[0].toUpperCase()}</span>` : ''}
+                                                <button class="selected-food-remove" data-idx="${idx}">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('customFood')}</label>
+                                <input type="text" class="form-input" id="custom-food" placeholder="${t('customFood')}" value="${state.mealForm.customFood}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('notes')}</label>
+                                <textarea class="form-input" id="meal-notes" placeholder="${t('notesPlaceholder')}">${state.mealForm.notes}</textarea>
+                            </div>
+                            
+                            <button class="btn-submit" id="save-meal" ${state.mealForm.foods.length === 0 && !state.mealForm.customFood ? 'disabled' : ''}>
+                                ${t('save')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderSymptomModal = () => {
+            const now = new Date();
+            const timeValue = state.symptomForm.time || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const symptomTypes = ['bloating', 'pain', 'cramping', 'gas', 'diarrhea', 'constipation', 'nausea', 'urgency'];
+            
+            return `
+                <div class="modal-overlay active" id="modal-overlay">
+                    <div class="modal">
+                        <div class="modal-handle"></div>
+                        <div class="modal-header">
+                            <span class="modal-title">${t('addSymptom')}</span>
+                            <button class="modal-close" id="modal-close">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label">${t('time')}</label>
+                                <input type="time" class="form-input" id="symptom-time" value="${timeValue}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('symptomType')}</label>
+                                <div class="symptom-types">
+                                    ${symptomTypes.map(type => `
+                                        <button class="symptom-type-btn ${state.symptomForm.types.includes(type) ? 'active' : ''}" data-type="${type}">
+                                            ${t(type)}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('severity')}</label>
+                                <div class="severity-selector">
+                                    ${[1,2,3,4,5].map(i => `
+                                        <button class="severity-btn ${state.symptomForm.severity === i ? `active s${i}` : ''}" data-severity="${i}">
+                                            ${i}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">${t('notes')}</label>
+                                <textarea class="form-input" id="symptom-notes" placeholder="${t('notesPlaceholder')}">${state.symptomForm.notes}</textarea>
+                            </div>
+                            
+                            <button class="btn-submit" id="save-symptom" ${state.symptomForm.types.length === 0 ? 'disabled' : ''}>
+                                ${t('save')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // ============================================
+        // EVENT HANDLERS
+        // ============================================
+        const attachEventListeners = () => {
+            // Language toggle
+            document.getElementById('lang-toggle')?.addEventListener('click', () => {
+                state.lang = state.lang === 'en' ? 'pt' : 'en';
+                localStorage.setItem('gutlog_lang', state.lang);
+                render();
+            });
+
+            // Navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.currentPage = btn.dataset.page;
+                    render();
+                });
+            });
+
+            // Date navigation
+            document.getElementById('prev-day')?.addEventListener('click', () => {
+                state.currentDate = new Date(state.currentDate.setDate(state.currentDate.getDate() - 1));
+                render();
+            });
+
+            document.getElementById('next-day')?.addEventListener('click', () => {
+                state.currentDate = new Date(state.currentDate.setDate(state.currentDate.getDate() + 1));
+                render();
+            });
+
+            // Quick add buttons
+            document.getElementById('btn-add-meal')?.addEventListener('click', () => {
+                state.modal = 'meal';
+                state.mealForm = { foods: [], customFood: '', notes: '', time: '' };
+                render();
+            });
+
+            document.getElementById('btn-add-symptom')?.addEventListener('click', () => {
+                state.modal = 'symptom';
+                state.symptomForm = { types: [], severity: 3, notes: '', time: '' };
+                render();
+            });
+
+            // Modal close
+            document.getElementById('modal-close')?.addEventListener('click', closeModal);
+            document.getElementById('modal-overlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'modal-overlay') closeModal();
+            });
+
+            // Food search
+            const foodSearch = document.getElementById('food-search');
+            const foodResults = document.getElementById('food-results');
+            
+            foodSearch?.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query.length < 2) {
+                    foodResults.classList.add('hidden');
+                    return;
+                }
+
+                const matches = foodDatabase.filter(food => {
+                    const nameEn = food.name.en.toLowerCase();
+                    const namePt = food.name.pt.toLowerCase();
+                    return nameEn.includes(query) || namePt.includes(query);
+                }).slice(0, 8);
+
+                if (matches.length > 0) {
+                    foodResults.innerHTML = matches.map((food, idx) => `
+                        <div class="food-item" data-food-idx="${idx}">
+                            <span class="food-item-name">${escapeHtml(food.name[state.lang])}</span>
+                            <span class="food-item-fodmap fodmap-tag ${food.fodmap}">${food.fodmap}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Store matches for retrieval
+                    foodResults._matches = matches;
+                    foodResults.classList.remove('hidden');
+
+                    foodResults.querySelectorAll('.food-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const idx = parseInt(item.dataset.foodIdx);
+                            const food = foodResults._matches[idx];
+                            if (!state.mealForm.foods.some(f => f.name.en === food.name.en)) {
+                                state.mealForm.foods.push(food);
+                            }
+                            foodSearch.value = '';
+                            foodResults.classList.add('hidden');
+                            render();
+                        });
+                    });
+                } else {
+                    foodResults.classList.add('hidden');
+                }
+            });
+
+            // Remove selected food
+            document.querySelectorAll('.selected-food-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.idx);
+                    state.mealForm.foods.splice(idx, 1);
+                    render();
+                });
+            });
+
+            // Custom food input
+            document.getElementById('custom-food')?.addEventListener('input', (e) => {
+                state.mealForm.customFood = e.target.value;
+                const saveBtn = document.getElementById('save-meal');
+                if (saveBtn) {
+                    saveBtn.disabled = state.mealForm.foods.length === 0 && !state.mealForm.customFood;
+                }
+            });
+
+            // Meal notes
+            document.getElementById('meal-notes')?.addEventListener('input', (e) => {
+                state.mealForm.notes = e.target.value;
+            });
+
+            // Save meal
+            document.getElementById('save-meal')?.addEventListener('click', () => {
+                const timeInput = document.getElementById('meal-time');
+                const [hours, minutes] = timeInput.value.split(':');
+                const timestamp = new Date(state.currentDate);
+                timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                const foods = [...state.mealForm.foods];
+                if (state.mealForm.customFood.trim()) {
+                    foods.push({
+                        name: { en: state.mealForm.customFood, pt: state.mealForm.customFood },
+                        customName: state.mealForm.customFood,
+                        fodmap: null
+                    });
+                }
+
+                state.entries.push({
+                    id: Date.now(),
+                    type: 'meal',
+                    timestamp: timestamp.toISOString(),
+                    foods: foods,
+                    notes: state.mealForm.notes
+                });
+
+                saveEntries();
+                closeModal();
+                showToast(t('mealSaved'));
+            });
+
+            // Symptom type buttons
+            document.querySelectorAll('.symptom-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    if (state.symptomForm.types.includes(type)) {
+                        state.symptomForm.types = state.symptomForm.types.filter(t => t !== type);
+                    } else {
+                        state.symptomForm.types.push(type);
+                    }
+                    render();
+                });
+            });
+
+            // Severity buttons
+            document.querySelectorAll('.severity-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.symptomForm.severity = parseInt(btn.dataset.severity);
+                    render();
+                });
+            });
+
+            // Symptom notes
+            document.getElementById('symptom-notes')?.addEventListener('input', (e) => {
+                state.symptomForm.notes = e.target.value;
+            });
+
+            // Save symptom
+            document.getElementById('save-symptom')?.addEventListener('click', () => {
+                const timeInput = document.getElementById('symptom-time');
+                const [hours, minutes] = timeInput.value.split(':');
+                const timestamp = new Date(state.currentDate);
+                timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                state.entries.push({
+                    id: Date.now(),
+                    type: 'symptom',
+                    timestamp: timestamp.toISOString(),
+                    symptoms: state.symptomForm.types,
+                    severity: state.symptomForm.severity,
+                    notes: state.symptomForm.notes
+                });
+
+                saveEntries();
+                closeModal();
+                showToast(t('symptomSaved'));
+            });
+
+            // Delete entries
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    state.entries = state.entries.filter(e => e.id !== id);
+                    saveEntries();
+                    showToast(t('entryDeleted'));
+                    render();
+                });
+            });
+
+            // Settings
+            document.getElementById('setting-lang')?.addEventListener('click', () => {
+                state.lang = state.lang === 'en' ? 'pt' : 'en';
+                localStorage.setItem('gutlog_lang', state.lang);
+                render();
+            });
+
+            document.getElementById('setting-export')?.addEventListener('click', exportData);
+            document.getElementById('setting-clear')?.addEventListener('click', () => {
+                if (confirm(t('clearConfirm'))) {
+                    state.entries = [];
+                    saveEntries();
+                    showToast(t('cleared'));
+                    render();
+                }
+            });
+        };
+
+        const closeModal = () => {
+            state.modal = null;
+            render();
+        };
+
+        const exportData = () => {
+            const headers = ['Type', 'Date', 'Time', 'Details', 'Severity', 'Notes', 'FODMAP'];
+            const rows = state.entries.map(entry => {
+                const date = new Date(entry.timestamp);
+                if (entry.type === 'meal') {
+                    const foods = entry.foods.map(f => f.name.en || f.customName).join('; ');
+                    const fodmaps = entry.foods.map(f => f.fodmap || 'unknown').join('; ');
+                    return ['Meal', date.toLocaleDateString(), date.toLocaleTimeString(), foods, '', entry.notes || '', fodmaps];
+                } else {
+                    return ['Symptom', date.toLocaleDateString(), date.toLocaleTimeString(), entry.symptoms.join('; '), entry.severity, entry.notes || '', ''];
+                }
+            });
+
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gutlog_export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(t('exportSuccess'));
+        };
+
+        // Initialize app
+        render();
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
